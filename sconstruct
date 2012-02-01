@@ -1,11 +1,10 @@
 env = Environment()
 
-lib_target = "udf_levenshtein"
+lib_target = "pg_levenshtein"
 lib_sources = ["levenshtein.c"]
 
 env.Append(CFLAGS = ['-O3'])
-env.Append(CPPPATH = ["/usr/include/mysql"])
+env.Append(CPPPATH = ["/usr/src/postgres/src/include"])
 env.Append(LINKFLAGS = ['-O3'])
 
 env.SharedLibrary(target = lib_target, source = lib_sources)
-

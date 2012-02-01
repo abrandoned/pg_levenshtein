@@ -1,4 +1,4 @@
-require 'leven'
+require './leven'
 
 describe "Levenshtein" do
   specify{ Levenshtein.leven("hello", "hello").should equal(0) }

@@ -1,0 +1,5 @@
+levenshtein.so
+levenshtein.os
+
+libpg_levenshtein.so
+*.dblite

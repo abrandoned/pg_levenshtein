@@ -1,18 +1,23 @@
-Mysql Levenshtein UDF
+Postgres Levenshtein UDF
 ====
 
 Implementation of levenshtein edit distance algorithm to be used in mysql as a UDF.
-Most of the implementations I found did not allow for using table data in queries as
-they only allocated memory once.  This implementation has both a shared memory buffer
-and bounds checking if the input exceeds the initialized memory where it will allocate
-new memory for each row.
 
-Using scons to build the "libudf_levenshtein.so" file, but also included a Ruby FFI
-version and a rakefile with specs in it for testing.
+Using scons to build the "libpg_levenshtein.so" file, but also included a Ruby FFI
+version and a rakefile with specs in it for testing. (Ruby specs currently are not running
+in pg version, this was thrown together quickly)
 
-Move the libudf_levenshtein.so file to you mysql plugins directly and install with:
+Move the libpg_levenshtein.so file to your postgres plugins directory and install with:
   
-  "CREATE FUNCTION levenshtein RETURNS INTEGER SONAME 'libudf_levenshtein.so';"
+  "CREATE FUNCTION levenshtein(text, text, integer) RETURNS integer AS
+    'libpg_levenshtein', 'levenshtein_threshold' LANGUAGE C STRICT;"
+
+  "CREATE FUNCTION levenshtein(text, text) RETURNS integer AS
+    'libpg_levenshtein', 'levenshtein' LANGUAGE C STRICT;"
+
+Postgres considered different signatures to be different functions, therefore you must
+install both to use the same as the MySql UDF.
+
 
 Usage
 ====
@@ -37,4 +42,3 @@ Performance
   (which contains ~48million words) takes approx 56 sec on my machine.  Adding a naive
   levenshtein distance calculation to each word only results in approx 10 sec change in
   execution speed.  (ie - it is pretty fast)
-  
