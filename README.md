@@ -4,8 +4,12 @@ Postgres Levenshtein UDF
 Implementation of levenshtein edit distance algorithm to be used in mysql as a UDF.
 
 Using scons to build the "libpg_levenshtein.so" file, but also included a Ruby FFI
-version and a rakefile with specs in it for testing. (Ruby specs currently are not running
-in pg version, this was thrown together quickly)
+version and a rakefile with specs in it for testing. To run the specs, you must
+compile libpg_levenshtein as:
+  
+  scons rspec=1
+
+The rspec flag changes the memory allocator so the postgres allocator is not used.
 
 Move the libpg_levenshtein.so file to your postgres plugins directory and install with:
   

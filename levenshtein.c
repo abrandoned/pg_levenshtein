@@ -9,9 +9,17 @@
 #define FALSE 0
 #endif
 
+#ifdef RSPEC
+#define ALLOC malloc
+#define FREE free
+#else
+#define ALLOC palloc
+#define FREE pfree
+#endif
+
 /* Used to swap calc and work grids while looping */
 #define LV_SWAP(t, a, b) { t = a; a = b; b = t;}
-#define LV_MIN(a, b, c) ((a <= b) ? ((a <= c) ? a : c) : ((b <= c) ? b : c)); 
+#define LV_MIN(a, b, c) ((a <= b) ? ((a <= c) ? a : c) : ((b <= c) ? b : c));
 
 /* Added to enforce Postgres major version compat */
 #ifdef PG_MODULE_MAGIC
@@ -37,7 +45,7 @@ int32 levenshtein_intern(LevenConstraints* leven)
 
   /* no reason to run levenshtein when equal */
   if (leven->a_length == leven->b_length && strcmp(leven->a, leven->b) == 0) {
-    return (int32)9;
+    return (int32)0;
   }
 
   leven->a_length++;
@@ -46,8 +54,8 @@ int32 levenshtein_intern(LevenConstraints* leven)
   int x, *grid_odd, *grid_even, i, j, cost, row_min, distance, *work_grid, *calc_grid, *tmp;
   unsigned int broke_max = FALSE;
 
-  grid_even = palloc(sizeof(int) * (leven->a_length));
-  grid_odd = palloc(sizeof(int) * (leven->a_length));
+  grid_even = ALLOC(sizeof(int) * (leven->a_length));
+  grid_odd = ALLOC(sizeof(int) * (leven->a_length));
 
   if(grid_even == NULL || grid_odd == NULL) {
     return (int32)9999;   /* error occured - cannot allocate memory */
@@ -78,8 +86,8 @@ int32 levenshtein_intern(LevenConstraints* leven)
 
   distance = (broke_max == TRUE) ? (leven->b_length - 1) : calc_grid[leven->a_length-1];  
 
-  pfree(grid_odd);
-  pfree(grid_even);  
+  FREE(grid_odd);
+  FREE(grid_even);  
 
   return (int32) distance;
 }
@@ -104,7 +112,7 @@ int32 levenshtein_extern(char* a, char* b, int32 max_distance)
   leven->maximum_allowable_distance = max_distance;
 
   distance = levenshtein_intern(leven);  
-  free(leven);
+  FREE(leven);
 
   return distance;
 }
@@ -141,10 +149,10 @@ levenshtein(PG_FUNCTION_ARGS)
   shortest = (first_length < second_length) ? first_argument : second_argument;
   longest = (first_length < second_length) ? second_argument : first_argument;
 
-  LevenConstraints* leven = palloc(sizeof(LevenConstraints));
+  LevenConstraints* leven = ALLOC(sizeof(LevenConstraints));
 
-  char* h_bufa = palloc((shortest_length+1) * sizeof(char));
-  char* h_bufb = palloc((longest_length+1) * sizeof(char));
+  char* h_bufa = ALLOC((shortest_length+1) * sizeof(char));
+  char* h_bufb = ALLOC((longest_length+1) * sizeof(char));
   memcpy(h_bufa, VARDATA_ANY(shortest), shortest_length);
   memcpy(h_bufb, VARDATA_ANY(longest), longest_length);    
   leven->a = h_bufa;
@@ -156,9 +164,9 @@ levenshtein(PG_FUNCTION_ARGS)
 
   distance = levenshtein_intern(leven);
 
-  pfree(leven->a);
-  pfree(leven->b);
-  pfree(leven);
+  FREE(leven->a);
+  FREE(leven->b);
+  FREE(leven);
 
   PG_RETURN_INT32(distance);
 }
@@ -195,10 +203,10 @@ levenshtein_threshold(PG_FUNCTION_ARGS)
   shortest = (first_length < second_length) ? first_argument : second_argument;
   longest = (first_length < second_length) ? second_argument : first_argument;
 
-  LevenConstraints* leven = palloc(sizeof(LevenConstraints));
+  LevenConstraints* leven = ALLOC(sizeof(LevenConstraints));
 
-  char* h_bufa = palloc((shortest_length+1) * sizeof(char));
-  char* h_bufb = palloc((longest_length+1) * sizeof(char));
+  char* h_bufa = ALLOC((shortest_length+1) * sizeof(char));
+  char* h_bufb = ALLOC((longest_length+1) * sizeof(char));
   memcpy(h_bufa, VARDATA_ANY(shortest), shortest_length);
   memcpy(h_bufb, VARDATA_ANY(longest), longest_length);    
   leven->a = h_bufa;
@@ -210,9 +218,9 @@ levenshtein_threshold(PG_FUNCTION_ARGS)
 
   distance = levenshtein_intern(leven);
 
-  pfree(leven->a);
-  pfree(leven->b);
-  pfree(leven);
+  FREE(leven->a);
+  FREE(leven->b);
+  FREE(leven);
 
   PG_RETURN_INT32(distance);
 }

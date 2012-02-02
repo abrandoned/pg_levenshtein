@@ -4,6 +4,10 @@ lib_target = "pg_levenshtein"
 lib_sources = ["levenshtein.c"]
 
 env.Append(CFLAGS = ['-O3'])
+
+if ARGUMENTS.get('rspec', 0):
+  env.AppendUnique(CFLAGS = ['-DRSPEC']) 
+
 env.Append(CPPPATH = ["/usr/src/postgres/src/include"])
 env.Append(LINKFLAGS = ['-O3'])
 
